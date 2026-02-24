@@ -1,0 +1,209 @@
+-- ControlScript (LocalScript in StarterPlayerScripts)
+
+-- This script handles player movement controls for side-scroller gameplay
+
+
+
+-- Get required services
+
+local Players = game:GetService("Players")
+
+local RunService = game:GetService("RunService")
+
+local ContextActionService = game:GetService("ContextActionService")
+
+
+
+-- Get the local player
+
+local player = Players.LocalPlayer
+
+
+
+-- Variables to track which keys are being pressed
+
+local leftValue, rightValue = 0, 0  -- 0 = not pressed, 1 = pressed
+
+local jumping = false               -- Tracks if jump button is held
+
+
+
+-- Function that handles left movement input
+
+local function onLeft(actionName, inputState)
+
+if inputState == Enum.UserInputState.Begin then
+
+leftValue = 1  -- Player started pressing left
+
+elseif inputState == Enum.UserInputState.End then
+
+leftValue = 0  -- Player stopped pressing left
+
+end
+
+return Enum.ContextActionResult.Sink  -- Prevent default behavior
+
+end
+
+
+
+-- Function that handles right movement input
+
+local function onRight(actionName, inputState)
+
+if inputState == Enum.UserInputState.Begin then
+
+rightValue = 1  -- Player started pressing right
+
+elseif inputState == Enum.UserInputState.End then
+
+rightValue = 0  -- Player stopped pressing right
+
+end
+
+return Enum.ContextActionResult.Sink  -- Prevent default behavior
+
+end
+
+
+
+-- Function that handles jump input
+
+local function onJump(actionName, inputState)
+
+if inputState == Enum.UserInputState.Begin then
+
+jumping = true  -- Player started pressing jump
+
+elseif inputState == Enum.UserInputState.End then
+
+jumping = false  -- Player stopped pressing jump
+
+end
+
+return Enum.ContextActionResult.Sink  -- Prevent default behavior
+
+end
+
+
+
+-- Function that updates player movement every frame
+
+local function onUpdate()
+
+-- Get the player's character
+
+local character = player.Character
+
+if not character then return end
+
+
+
+-- Get the Humanoid and HumanoidRootPart from the character
+
+local humanoid = character:FindFirstChildOfClass("Humanoid")
+
+local root = character:FindFirstChild("HumanoidRootPart")
+
+if not humanoid or not root then return end
+
+
+
+-- Disable AutoRotate to prevent Roblox from automatically turning the player
+
+humanoid.AutoRotate = false
+
+
+
+-- Make the player jump if jump button is held
+
+if jumping then
+
+humanoid.Jump = true
+
+end
+
+
+
+-- Calculate movement direction: 1 (right), -1 (left), or 0 (no movement)
+
+local moveDirection = rightValue - leftValue
+
+
+
+-- Move the player on the X axis (left/right in side-scroller)
+
+humanoid:Move(Vector3.new(moveDirection, 0, 0), false)
+
+
+
+-- Make the player face the direction they're moving
+
+if moveDirection ~= 0 then
+
+root.CFrame = CFrame.new(root.Position, root.Position + Vector3.new(moveDirection, 0, 0))
+
+end
+
+end
+
+
+
+-- Bind the left movement action to A, Left Arrow, and DPad Left keys
+
+ContextActionService:BindAction("Left", onLeft, true,
+
+Enum.KeyCode.A, 
+
+Enum.KeyCode.Left, 
+
+Enum.KeyCode.DPadLeft
+
+)
+
+
+
+-- Bind the right movement action to D, Right Arrow, and DPad Right keys
+
+ContextActionService:BindAction("Right", onRight, true,
+
+Enum.KeyCode.D, 
+
+Enum.KeyCode.Right, 
+
+Enum.KeyCode.DPadRight
+
+)
+
+
+
+-- Bind the jump action to Space, W, Up Arrow, DPad Up, and Button A (controller)
+
+ContextActionService:BindAction("Jump", onJump, true,
+
+Enum.KeyCode.Space, 
+
+Enum.KeyCode.W, 
+
+Enum.KeyCode.Up,
+
+Enum.KeyCode.DPadUp, 
+
+Enum.KeyCode.ButtonA
+
+)
+
+
+
+-- Bind the onUpdate function to run every frame at input priority
+
+RunService:BindToRenderStep(
+
+"ControlUpdate",                      -- Name of the binding
+
+Enum.RenderPriority.Input.Value,      -- Priority (runs at input processing time)
+
+onUpdate                              -- Function to call each frame
+
+)
