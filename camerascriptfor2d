@@ -1,0 +1,89 @@
+-- CameraScript (LocalScript in StarterPlayerScripts)
+
+-- This script creates a side-scrolling camera view that follows the player
+
+
+
+-- Get required services
+
+local Players = game:GetService("Players")
+
+local RunService = game:GetService("RunService")
+
+
+
+-- Get the local player and the game camera
+
+local player = Players.LocalPlayer
+
+local camera = workspace.CurrentCamera
+
+
+
+-- Camera positioning values (adjust these to change camera distance and height)
+
+local Z_DISTANCE = 30        -- How far the camera is from the player (front/back)
+
+local HEIGHT_OFFSET = 6      -- Camera height above the player
+
+
+
+-- Function that updates the camera position every frame
+
+local function updateCamera()
+
+-- Get the player's character
+
+local character = player.Character
+
+if not character then return end
+
+
+
+-- Get the character's HumanoidRootPart (main body part)
+
+local root = character:FindFirstChild("HumanoidRootPart")
+
+if not root then return end
+
+
+
+-- Set camera to Scriptable mode so we can control it manually
+
+camera.CameraType = Enum.CameraType.Scriptable
+
+
+
+-- Calculate where the camera should look (player position + height offset)
+
+local targetPos = root.Position + Vector3.new(0, HEIGHT_OFFSET, 0)
+
+
+
+-- Position the camera on the Z axis for side-scroller view
+
+-- Movement on X axis will look like a side-scroller game
+
+local camPos = targetPos + Vector3.new(0, 0, Z_DISTANCE)
+
+
+
+-- Set the camera's CFrame to look at the player from the calculated position
+
+camera.CFrame = CFrame.lookAt(camPos, targetPos)
+
+end
+
+
+
+-- Bind the updateCamera function to run every frame at render priority
+
+RunService:BindToRenderStep(
+
+"SidescrollerCamera",                    -- Name of the binding
+
+Enum.RenderPriority.Camera.Value + 1,    -- Priority (runs after default camera)
+
+updateCamera                              -- Function to call each frame
+
+)
